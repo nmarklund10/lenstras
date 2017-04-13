@@ -8,7 +8,7 @@ DEPS = -lgmp
 all: $(TARGET)
 
 $(TARGET): $(TARGET).cpp
-	$(CC) $(CFLAGS) $(TARGET).cpp -o $(OUTPUT) $(DEPS)
+	$(CC) $(CFLAGS) *.cpp *.h -o $(OUTPUT) $(DEPS)
 
 clean:
 	rm $(OUTPUT)
