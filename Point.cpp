@@ -1,5 +1,11 @@
 #include "Point.h"
 
+void my_mpz_mod(mpz_t out, mpz_t modulus) {
+	while (mpz_cmp_si(out, 0) < 0)
+		mpz_add(out, out, modulus);
+	mpz_mod(out, out, modulus);
+}
+
 Point::Point() {
 	mpz_init_set_ui(x, 0);
 	mpz_init_set_ui(y, 0);
@@ -19,6 +25,17 @@ Point::Point(std::string x_new, std::string y_new, std::string a_new, std::strin
 	mpz_init_set_str(y, y_new.c_str(), 10);
 	mpz_init_set_str(a, a_new.c_str(), 10);
 	mpz_init_set_str(p, p_new.c_str(), 10);
+	my_mpz_mod(x, p);
+	my_mpz_mod(y, p);
+	my_mpz_mod(a, p);
+	
+	mpz_out_str(stdout, 10, x);
+	printf("\n");
+	mpz_out_str(stdout, 10, y);
+	printf("\n");
+	mpz_out_str(stdout, 10, p);
+	printf("\n");
+	mpz_out_str(stdout, 10, a);
 }
 
 Point::Point(mpz_t x_new, mpz_t y_new, mpz_t a_new, mpz_t p_new) {
@@ -26,63 +43,24 @@ Point::Point(mpz_t x_new, mpz_t y_new, mpz_t a_new, mpz_t p_new) {
 	mpz_init_set(y, y_new);
 	mpz_init_set(a, a_new);
 	mpz_init_set(p, p_new);
+	my_mpz_mod(x, p);
+	my_mpz_mod(y, p);
+	my_mpz_mod(a, p);
 }
 
-bool Point::operator==(Point p) {
-	return (mpz_cmp(this->x, p.x) && mpz_cmp(this->y, p.y));
+Point::Point(Point p1, std::string a_new, std::string p_new) {
+	mpz_init_set(x, p1.x);
+	mpz_init_set(y, p1.y);
+	mpz_init_set_str(a, a_new.c_str(), 10);
+	mpz_init_set_str(p, p_new.c_str(), 10);
+	my_mpz_mod(a, p);
 }
 
-void Point::operator+(Point p) {
-	if (p == POINT_O || *this == POINT_O)
-		return;
-	mpz_t m, x3, y3, temp;
-	mpz_init(m);
-	mpz_init(x3);
-	mpz_init(y3);
-	mpz_init(temp);
-	if (*this == p) {
-		mpz_set_ui(m, 3);
-		mpz_mul(m, m, this->x);
-		mpz_mul(m, m, this->x);
-		mpz_add(m, m, this->a);
-		mpz_set_ui(temp, 2);
-		mpz_mul(temp, temp, this->y);
-		mpz_invert(temp, temp, this->p);
-		mpz_mul(m, m, temp);
-		mpz_mod(m, m, this->p);
-	}
-	else if (this->x == p.x) {
-		mpz_clear(m);
-		mpz_clear(temp);
-		mpz_clear(x3);
-		mpz_clear(y3);
-		return;
-	}
-	else {
-		mpz_set(m, p.y);
-		mpz_sub(m, m, this->y);
-		mpz_set(temp, p.x);
-		mpz_sub(temp, temp, this->x);
-		mpz_invert(temp, temp, this->p);
-		mpz_mul(m, m, temp);
-		mpz_mod(m, m, this->p);
-	}
-	mpz_mul(temp, m, m);
-	mpz_sub(temp, temp, this->x);
-	mpz_sub(x3, temp, p.x);
-	
-	mpz_sub(temp, this->x, x3);
-	mpz_mul(temp, temp, m);;
-	mpz_sub(y3, temp, this->y);
-	
-	mpz_set(this->x, x3);
-	mpz_set(this->y, y3);
-	
-	mpz_clear(m);
-	mpz_clear(temp);
-	mpz_clear(y3);
-	mpz_clear(x3);
-	return;
+Point::~Point() {
+	mpz_clear(x);
+	mpz_clear(y);
+	mpz_clear(a);
+	mpz_clear(p);
 }
 
 void Point::print() {
@@ -91,4 +69,71 @@ void Point::print() {
 	printf(", ");
 	mpz_out_str(stdout, 10, this->y);
 	printf(")\n");
+}
+
+bool Point::equals(Point p1) {
+	return ((mpz_cmp(x, p1.x) == 0) && (mpz_cmp(y, p1.y) == 0));
+}
+
+void Point::add(Point p1) {
+	if (p1.equals(POINT_O)) {
+		return;
+	}
+	if (this->equals(POINT_O)) {
+		mpz_set(x, p1.x);
+		mpz_set(y, p1.y);
+		my_mpz_mod(x, p);
+		my_mpz_mod(y, p);
+		return;
+	}
+	mpz_t m, x3, y3, temp;
+	mpz_init(m);
+	mpz_init(x3);
+	mpz_init(y3);
+	mpz_init(temp);
+	if (this->equals(p1)) {
+		mpz_set_ui(m, 3);
+		mpz_mul(m, m, x);
+		mpz_mul(m, m, x);
+		mpz_add(m, m, a);
+		mpz_set_ui(temp, 2);
+		mpz_mul(temp, temp, y);
+		mpz_invert(temp, temp, p);
+		mpz_mul(m, m, temp);
+		my_mpz_mod(m, p);
+	}
+	else if (mpz_cmp(x, p1.x) == 0) {
+		mpz_clear(m);
+		mpz_clear(temp);
+		mpz_clear(x3);
+		mpz_clear(y3);
+		return;
+	}
+	else {
+		mpz_set(m, p1.y);
+		mpz_sub(m, m, y);
+		mpz_set(temp, p1.x);
+		mpz_sub(temp, temp, x);
+		mpz_invert(temp, temp, p);
+		mpz_mul(m, m, temp);
+		my_mpz_mod(m, p);
+	}
+	mpz_mul(temp, m, m);
+	mpz_sub(temp, temp, x);
+	mpz_sub(x3, temp, p1.x);
+	my_mpz_mod(x3, p);
+	
+	mpz_sub(temp, x, x3);
+	mpz_mul(temp, temp, m);;
+	mpz_sub(y3, temp, y);
+	my_mpz_mod(y3, p);
+	
+	mpz_set(x, x3);
+	mpz_set(y, y3);
+	
+	mpz_clear(m);
+	mpz_clear(temp);
+	mpz_clear(y3);
+	mpz_clear(x3);
+	return;
 }

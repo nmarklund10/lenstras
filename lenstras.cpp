@@ -12,8 +12,9 @@ int main(int argc, char** argv) {
 		
 	}
 	Point p1("1", "2", "-1", "7");
+	printf("\n\n");
 	Point p2("4", "1", "-1", "7");
-	p1 + p2;
+	p1.add(p2);
 	p1.print();
 	return 0;
 }
