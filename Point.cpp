@@ -6,6 +6,11 @@ void my_mpz_mod(mpz_t out, mpz_t modulus) {
 	mpz_mod(out, out, modulus);
 }
 
+void output(mpz_t out) {
+	mpz_out_str(stdout, 10, out);
+	printf("\n");
+}
+
 Point::Point() {
 	mpz_init_set_ui(x, 0);
 	mpz_init_set_ui(y, 0);
@@ -28,14 +33,6 @@ Point::Point(std::string x_new, std::string y_new, std::string a_new, std::strin
 	my_mpz_mod(x, p);
 	my_mpz_mod(y, p);
 	my_mpz_mod(a, p);
-	
-	mpz_out_str(stdout, 10, x);
-	printf("\n");
-	mpz_out_str(stdout, 10, y);
-	printf("\n");
-	mpz_out_str(stdout, 10, p);
-	printf("\n");
-	mpz_out_str(stdout, 10, a);
 }
 
 Point::Point(mpz_t x_new, mpz_t y_new, mpz_t a_new, mpz_t p_new) {
@@ -48,7 +45,7 @@ Point::Point(mpz_t x_new, mpz_t y_new, mpz_t a_new, mpz_t p_new) {
 	my_mpz_mod(a, p);
 }
 
-Point::Point(Point p1, std::string a_new, std::string p_new) {
+Point::Point(Point& p1, std::string a_new, std::string p_new) {
 	mpz_init_set(x, p1.x);
 	mpz_init_set(y, p1.y);
 	mpz_init_set_str(a, a_new.c_str(), 10);
@@ -65,33 +62,37 @@ Point::~Point() {
 
 void Point::print() {
 	printf("(");
-	mpz_out_str(stdout, 10, this->x);
+	mpz_out_str(stdout, 10, x);
 	printf(", ");
-	mpz_out_str(stdout, 10, this->y);
+	mpz_out_str(stdout, 10, y);
 	printf(")\n");
 }
 
-bool Point::equals(Point p1) {
+bool Point::equals(Point& p1) {
 	return ((mpz_cmp(x, p1.x) == 0) && (mpz_cmp(y, p1.y) == 0));
 }
 
-void Point::add(Point p1) {
-	if (p1.equals(POINT_O)) {
-		return;
+bool Point::equals_POINT_O() {
+	return ((mpz_cmp_si(x, -1) == 0) && (mpz_cmp_si(y, -1) == 0));
+}
+
+int Point::add(Point& p1) {
+	if (p1.equals_POINT_O()) {
+		return 1;
 	}
-	if (this->equals(POINT_O)) {
+	if (equals_POINT_O()) {
 		mpz_set(x, p1.x);
 		mpz_set(y, p1.y);
 		my_mpz_mod(x, p);
 		my_mpz_mod(y, p);
-		return;
+		return 2;
 	}
 	mpz_t m, x3, y3, temp;
 	mpz_init(m);
 	mpz_init(x3);
 	mpz_init(y3);
 	mpz_init(temp);
-	if (this->equals(p1)) {
+	if (equals(p1)) {
 		mpz_set_ui(m, 3);
 		mpz_mul(m, m, x);
 		mpz_mul(m, m, x);
@@ -107,7 +108,7 @@ void Point::add(Point p1) {
 		mpz_clear(temp);
 		mpz_clear(x3);
 		mpz_clear(y3);
-		return;
+		return 3;
 	}
 	else {
 		mpz_set(m, p1.y);
@@ -135,5 +136,5 @@ void Point::add(Point p1) {
 	mpz_clear(temp);
 	mpz_clear(y3);
 	mpz_clear(x3);
-	return;
+	return 4;
 }
