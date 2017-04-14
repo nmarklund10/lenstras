@@ -4,7 +4,7 @@ void my_mpz_mod(mpz_t out, mpz_t modulus) {
 	while (mpz_cmp_si(out, 0) < 0)
 		mpz_add(out, out, modulus);
 	mpz_mod(out, out, modulus);
-}
+}   
 
 void output(mpz_t out) {
 	mpz_out_str(stdout, 10, out);

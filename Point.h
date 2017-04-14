@@ -1,6 +1,11 @@
 #include <string> 
 #include "gmp.h"
 
+#ifndef MY_MPZ_MOD
+#define MY_MPZ_MOD
+void my_mpz_mod(mpz_t out, mpz_t modulus);
+#endif
+
 class Point {
 	public:
 		mpz_t x, y, a, p;
