@@ -4,11 +4,6 @@ void my_mpz_mod(mpz_t out, mpz_t modulus) {
 	while (mpz_cmp_si(out, 0) < 0)
 		mpz_add(out, out, modulus);
 	mpz_mod(out, out, modulus);
-}   
-
-void output(mpz_t out) {
-	mpz_out_str(stdout, 10, out);
-	printf("\n");
 }
 
 Point::Point() {
@@ -16,23 +11,6 @@ Point::Point() {
 	mpz_init_set_ui(y, 0);
 	mpz_init_set_ui(a, 0);
 	mpz_init_set_ui(p, 0);
-}
-
-Point::Point(int x_new, int y_new) {
-	mpz_init_set_si(x, x_new);
-	mpz_init_set_si(y, y_new);
-	mpz_init_set_ui(a, 0);
-	mpz_init_set_ui(p, 0);
-}
-
-Point::Point(std::string x_new, std::string y_new, std::string a_new, std::string p_new) {
-	mpz_init_set_str(x, x_new.c_str(), 10);
-	mpz_init_set_str(y, y_new.c_str(), 10);
-	mpz_init_set_str(a, a_new.c_str(), 10);
-	mpz_init_set_str(p, p_new.c_str(), 10);
-	my_mpz_mod(x, p);
-	my_mpz_mod(y, p);
-	my_mpz_mod(a, p);
 }
 
 Point::Point(mpz_t x_new, mpz_t y_new, mpz_t a_new, mpz_t p_new) {
@@ -45,11 +23,11 @@ Point::Point(mpz_t x_new, mpz_t y_new, mpz_t a_new, mpz_t p_new) {
 	my_mpz_mod(a, p);
 }
 
-Point::Point(Point& p1, std::string a_new, std::string p_new) {
+Point::Point(Point& p1, mpz_t a_new, mpz_t p_new) {
 	mpz_init_set(x, p1.x);
 	mpz_init_set(y, p1.y);
-	mpz_init_set_str(a, a_new.c_str(), 10);
-	mpz_init_set_str(p, p_new.c_str(), 10);
+	mpz_init_set(a, a_new);
+	mpz_init_set(p, p_new);
 	my_mpz_mod(a, p);
 }
 
@@ -87,11 +65,8 @@ int Point::add(Point& p1) {
 		my_mpz_mod(y, p);
 		return 2;
 	}
-	mpz_t m, x3, y3, temp;
-	mpz_init(m);
-	mpz_init(x3);
-	mpz_init(y3);
-	mpz_init(temp);
+	mpz_t m, x3, y3, temp, copy;
+	mpz_init(m); mpz_init(x3); mpz_init(y3); mpz_init(temp); mpz_init(copy);
 	if (equals(p1)) {
 		mpz_set_ui(m, 3);
 		mpz_mul(m, m, x);
@@ -99,15 +74,27 @@ int Point::add(Point& p1) {
 		mpz_add(m, m, a);
 		mpz_set_ui(temp, 2);
 		mpz_mul(temp, temp, y);
-		mpz_invert(temp, temp, p);
+		mpz_set(copy, temp);
+		if (mpz_invert(temp, temp, p) == 0) {
+			mpz_gcd(a, copy, p);
+			mpz_clear(m);
+			mpz_clear(temp);
+			mpz_clear(x3);
+			mpz_clear(y3);
+			mpz_clear(copy);
+			return -1;
+		}
 		mpz_mul(m, m, temp);
 		my_mpz_mod(m, p);
 	}
 	else if (mpz_cmp(x, p1.x) == 0) {
+		mpz_set_si(x, -1);
+		mpz_set_si(y, -1);
 		mpz_clear(m);
 		mpz_clear(temp);
 		mpz_clear(x3);
 		mpz_clear(y3);
+		mpz_clear(copy);
 		return 3;
 	}
 	else {
@@ -115,7 +102,16 @@ int Point::add(Point& p1) {
 		mpz_sub(m, m, y);
 		mpz_set(temp, p1.x);
 		mpz_sub(temp, temp, x);
-		mpz_invert(temp, temp, p);
+		mpz_set(copy, temp);
+		if (mpz_invert(temp, temp, p) == 0) {
+			mpz_gcd(a, copy, p);
+			mpz_clear(m);
+			mpz_clear(temp);
+			mpz_clear(x3);
+			mpz_clear(y3);
+			mpz_clear(copy);
+			return -1;
+		}
 		mpz_mul(m, m, temp);
 		my_mpz_mod(m, p);
 	}
@@ -134,7 +130,12 @@ int Point::add(Point& p1) {
 	
 	mpz_clear(m);
 	mpz_clear(temp);
-	mpz_clear(y3);
 	mpz_clear(x3);
+	mpz_clear(y3);
+	mpz_clear(copy);
 	return 4;
+}
+
+int multiply(int op, Point& p1) {
+	return 0;
 }
