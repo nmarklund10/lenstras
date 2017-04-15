@@ -53,7 +53,7 @@ void lenstras(mpz_t n, mpz_t max) {
 		printf("Point:  ");
 		p.print();
 		
-		p.multiply(8);
+		p.multiply(10);
 		p.print();
 	}
 }

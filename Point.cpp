@@ -75,12 +75,18 @@ int Point::add(Point& p1) {
 		mpz_mul(temp, temp, y);
 		mpz_set(copy, temp);
 		if (mpz_invert(temp, temp, p) == 0) {
-			mpz_gcd(a, copy, p);
+			mpz_t copy2;
+			mpz_init(copy2);
+			mpz_gcd(copy, copy, p);
+			mpz_tdiv_q(copy2, p, copy);
+			mpz_init_set(factor1, copy);
+			mpz_init_set(factor2, copy2);
 			mpz_clear(m);
 			mpz_clear(temp);
 			mpz_clear(x3);
 			mpz_clear(y3);
 			mpz_clear(copy);
+			mpz_clear(copy2);
 			return -1;
 		}
 		mpz_mul(m, m, temp);
@@ -103,12 +109,18 @@ int Point::add(Point& p1) {
 		mpz_sub(temp, temp, x);
 		mpz_set(copy, temp);
 		if (mpz_invert(temp, temp, p) == 0) {
-			mpz_gcd(a, copy, p);
+			mpz_t copy2;
+			mpz_init(copy2);
+			mpz_gcd(copy, copy, p);
+			mpz_tdiv_q(copy2, p, copy);
+			mpz_init_set(factor1, copy);
+			mpz_init_set(factor2, copy2);
 			mpz_clear(m);
 			mpz_clear(temp);
 			mpz_clear(x3);
 			mpz_clear(y3);
 			mpz_clear(copy);
+			mpz_clear(copy2);
 			return -1;
 		}
 		mpz_mul(m, m, temp);
@@ -150,31 +162,34 @@ int Point::multiply(int n) {
 	Point result(*this);
 	Point result_neg(*this);						
 	mpz_mul_si(result_neg.y, result_neg.y, -1); //negate y value
-	my_mpz_mod(result_neg.y, p);
-	Point temp(a, p);
+	Point temp(result_neg);
+	Point temp2(result);
 	
-	Point c2(a, p);		//result of diff * p1
 	int next_pow_2 = pow(2, ceil(log2(n)));
 	int diff = next_pow_2 - n;
 	next_pow_2 >>= 1;
 	
 	while (next_pow_2 > 0) {
 		if (diff > 0) {
-			temp.add(result_neg);
-			if ((diff & 1) == 1)
-				c2.add(temp);
+			if ((diff & 1) == 1) {
+				if (add(temp) == -1) {
+					return -1;
+				}
+			}
+			if (temp.add(result_neg)) {
+				return -1;
+			}
 			result_neg = temp;
 		}
-		
 		next_pow_2 >>= 1;
-		diff >>= 1;
-		//printf("%d %d\n", next_pow_2, diff);
-		
-		add(result);
-		result = *this;
-	}
-	if (!c2.equals_POINT_O()) {
-		add(c2);
+		diff >>= 1;		
+		if (temp2.add(result) == -1) {
+			return -1;
+		}
+		if (add(result) == -1) {
+			return -1;
+		}
+		result = temp2;
 	}
 	return 0;
 }

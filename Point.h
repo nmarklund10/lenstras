@@ -21,4 +21,5 @@ class Point {
 		int multiply(int n);
 		bool equals(Point& p1);
 		bool equals_POINT_O();
+		mpz_t factor1, factor2;
 };
