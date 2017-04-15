@@ -39,7 +39,7 @@ void get_new_input(mpz_t a, mpz_t b, mpz_t x, mpz_t y, mpz_t n, mpz_t max) {
 int lenstras(mpz_t n, mpz_t max) {
 	if (mpz_cmp_si(n, 2) == 0) {
 		output.push_back(std::string("2"));
-		return 0;
+		return -1;
 	}
 	int bound = 5, reps = 0;
 	mpz_t a, b, x, y;
