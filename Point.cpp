@@ -11,6 +11,8 @@ Point::Point(mpz_t a_new, mpz_t p_new) {
 	mpz_init_set_si(y, -1);
 	mpz_init_set(a, a_new);
 	mpz_init_set(p, p_new);
+	mpz_init(factor1);
+	mpz_init(factor2);
 }
 
 Point::Point(mpz_t x_new, mpz_t y_new, mpz_t a_new, mpz_t p_new) {
@@ -21,6 +23,8 @@ Point::Point(mpz_t x_new, mpz_t y_new, mpz_t a_new, mpz_t p_new) {
 	my_mpz_mod(x, p);
 	my_mpz_mod(y, p);
 	my_mpz_mod(a, p);
+	mpz_init(factor1);
+	mpz_init(factor2);
 }
 
 Point::Point(Point& p1) {
@@ -28,6 +32,8 @@ Point::Point(Point& p1) {
 	mpz_init_set(y, p1.y);
 	mpz_init_set(a, p1.a);
 	mpz_init_set(p, p1.p);
+	mpz_init(factor1);
+	mpz_init(factor2);
 }
 
 Point::~Point() {
@@ -35,6 +41,8 @@ Point::~Point() {
 	mpz_clear(y);
 	mpz_clear(a);
 	mpz_clear(p);
+	mpz_clear(factor1);
+	mpz_clear(factor2);
 }
 
 void Point::print() {
@@ -79,8 +87,8 @@ int Point::add(Point& p1) {
 			mpz_init(copy2);
 			mpz_gcd(copy, copy, p);
 			mpz_tdiv_q(copy2, p, copy);
-			mpz_init_set(factor1, copy);
-			mpz_init_set(factor2, copy2);
+			mpz_set(factor1, copy);
+			mpz_set(factor2, copy2);
 			mpz_clear(m);
 			mpz_clear(temp);
 			mpz_clear(x3);
@@ -113,8 +121,8 @@ int Point::add(Point& p1) {
 			mpz_init(copy2);
 			mpz_gcd(copy, copy, p);
 			mpz_tdiv_q(copy2, p, copy);
-			mpz_init_set(factor1, copy);
-			mpz_init_set(factor2, copy2);
+			mpz_set(factor1, copy);
+			mpz_set(factor2, copy2);
 			mpz_clear(m);
 			mpz_clear(temp);
 			mpz_clear(x3);
@@ -172,23 +180,25 @@ int Point::multiply(int n) {
 	while (next_pow_2 > 0) {
 		if (diff > 0) {
 			if ((diff & 1) == 1) {
-				if (add(temp) == -1) {
+				if (add(temp) < 0)
 					return -1;
-				}
 			}
-			if (temp.add(result_neg)) {
+			if (temp.add(result_neg) < 0) {
+				mpz_set(factor1, temp.factor1);
+				mpz_set(factor2, temp.factor2);
 				return -1;
 			}
 			result_neg = temp;
 		}
 		next_pow_2 >>= 1;
 		diff >>= 1;		
-		if (temp2.add(result) == -1) {
+		if (temp2.add(result) < 0) {
+			mpz_set(factor1, temp2.factor1);
+			mpz_set(factor2, temp2.factor2);
 			return -1;
 		}
-		if (add(result) == -1) {
+		if (add(result) < -1)
 			return -1;
-		}
 		result = temp2;
 	}
 	return 0;
