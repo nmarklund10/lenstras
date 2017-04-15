@@ -6,11 +6,11 @@ void my_mpz_mod(mpz_t out, mpz_t modulus) {
 	mpz_mod(out, out, modulus);
 }
 
-Point::Point() {
-	mpz_init_set_ui(x, 0);
-	mpz_init_set_ui(y, 0);
-	mpz_init_set_ui(a, 0);
-	mpz_init_set_ui(p, 0);
+Point::Point(mpz_t a_new, mpz_t p_new) {
+	mpz_init_set_si(x, -1);
+	mpz_init_set_si(y, -1);
+	mpz_init_set(a, a_new);
+	mpz_init_set(p, p_new);
 }
 
 Point::Point(mpz_t x_new, mpz_t y_new, mpz_t a_new, mpz_t p_new) {
@@ -23,12 +23,11 @@ Point::Point(mpz_t x_new, mpz_t y_new, mpz_t a_new, mpz_t p_new) {
 	my_mpz_mod(a, p);
 }
 
-Point::Point(Point& p1, mpz_t a_new, mpz_t p_new) {
+Point::Point(Point& p1) {
 	mpz_init_set(x, p1.x);
 	mpz_init_set(y, p1.y);
-	mpz_init_set(a, a_new);
-	mpz_init_set(p, p_new);
-	my_mpz_mod(a, p);
+	mpz_init_set(a, p1.a);
+	mpz_init_set(p, p1.p);
 }
 
 Point::~Point() {
@@ -136,6 +135,46 @@ int Point::add(Point& p1) {
 	return 4;
 }
 
-int multiply(int op, Point& p1) {
+void Point::operator=(Point& p1) {
+	mpz_set(x, p1.x);
+	mpz_set(y, p1.y);
+	mpz_set(a, p1.a);
+	mpz_set(p, p1.p);
+}
+
+int Point::multiply(int n) {
+	if (n < 1)
+		return -2;
+	else if (n == 1)
+		return 0;
+	Point result(*this);
+	Point result_neg(*this);						
+	mpz_mul_si(result_neg.y, result_neg.y, -1); //negate y value
+	my_mpz_mod(result_neg.y, p);
+	Point temp(a, p);
+	
+	Point c2(a, p);		//result of diff * p1
+	int next_pow_2 = pow(2, ceil(log2(n)));
+	int diff = next_pow_2 - n;
+	next_pow_2 >>= 1;
+	
+	while (next_pow_2 > 0) {
+		if (diff > 0) {
+			temp.add(result_neg);
+			if ((diff & 1) == 1)
+				c2.add(temp);
+			result_neg = temp;
+		}
+		
+		next_pow_2 >>= 1;
+		diff >>= 1;
+		//printf("%d %d\n", next_pow_2, diff);
+		
+		add(result);
+		result = *this;
+	}
+	if (!c2.equals_POINT_O()) {
+		add(c2);
+	}
 	return 0;
 }

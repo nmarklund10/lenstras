@@ -16,9 +16,12 @@ void get_new_input(mpz_t a, mpz_t b, mpz_t x, mpz_t y, mpz_t n, mpz_t max) {
 	mpz_init(temp);
 	
 	//Set a, x, y to random number in [0, n-1]
-	mpz_urandomm(a, state, max);
+	/*mpz_urandomm(a, state, max);
 	mpz_urandomm(x, state, max);
-	mpz_urandomm(y, state, max); 
+	mpz_urandomm(y, state, max);*/
+	mpz_set_ui(a, 5);
+	mpz_set_ui(x, 10);
+	mpz_set_ui(y, 7);
 	
 	//b = y^2 - x^3 - a*x (mod n)
 	mpz_pow_ui(b, y, 2);
@@ -32,11 +35,11 @@ void get_new_input(mpz_t a, mpz_t b, mpz_t x, mpz_t y, mpz_t n, mpz_t max) {
 }
 
 void lenstras(mpz_t n, mpz_t max) {
-	int bound = 20, reps = 0;
+	int bound = 3, reps = 0;
 	mpz_t a, b, x, y;
 	mpz_init(a); mpz_init(b); mpz_init(x); mpz_init(y); 
 	
-	while (++reps != bound) {
+	while (++reps <= bound) {
 		get_new_input(a, b, x, y, n, max);
 		Point p(x, y, a, n);
 		
@@ -50,7 +53,8 @@ void lenstras(mpz_t n, mpz_t max) {
 		printf("Point:  ");
 		p.print();
 		
-		
+		p.multiply(8);
+		p.print();
 	}
 }
 
