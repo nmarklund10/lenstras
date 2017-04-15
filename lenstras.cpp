@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <climits>
+#include <algorithm>
 #include <random>
 #include <chrono>
 #include <iostream>
@@ -14,9 +15,9 @@ std::vector<std::string> output;
 mpz_t temp;
 
 void get_primes_less_than(const int& limit, std::vector<int>& table) {
-	//erathosthen_sieve to get all primes less than limit
-	//use to calculate lcm of all integers less than limit
-	std::vector<bool> is_prime(limit, true);
+	//Eratosthenes sieve to get all primes <= limit
+	//use to calculate lcm of all integers <= limit
+	std::vector<bool> is_prime(limit + 1, true);
 	is_prime[0] = false;
 	is_prime[1] = false;
 	for (int i = 2; i < limit; ++i) {
@@ -37,6 +38,13 @@ void get_new_input(mpz_t a, mpz_t b, mpz_t x, mpz_t y, mpz_t n, mpz_t max) {
 }
 
 int lenstras(mpz_t n, mpz_t max) {
+	char* f2 = mpz_get_str(NULL, 10, n);
+	std::string s(f2);
+	free(f2);
+	if (std::find(output.begin(), output.end(), s) != output.end()) {
+		output.push_back(s);
+		return 0;
+	}
 	if (mpz_cmp_si(n, 2) == 0) {
 		output.push_back(std::string("2"));
 		return -1;
@@ -72,9 +80,7 @@ int lenstras(mpz_t n, mpz_t max) {
 			}
 		}
 	}
-	char* f2 = mpz_get_str(NULL, 10, n);
-	output.push_back(std::string(f2));
-	free(f2);
+	output.push_back(s);
 	mpz_clear(a); mpz_clear(b); mpz_clear(x); mpz_clear(y);
 	return -1;
 }
@@ -114,7 +120,7 @@ int main(int argc, char** argv) {
 	gmp_randseed_ui(state, rand_dev());
 	get_primes_less_than(limit, primes);
 	mpz_init(temp);
-	
+
 	printf("\n");
 	mpz_out_str(stdout, 10, n);
 	printf(" = ");
@@ -122,16 +128,16 @@ int main(int argc, char** argv) {
 	if (lenstras(n, max) == -1) {
 		auto finish = std::chrono::high_resolution_clock::now();
 		auto duration = std::chrono::duration_cast<std::chrono::microseconds>(finish - begin).count();
+		printf("1 * ");
 		mpz_out_str(stdout, 10, n);
-		printf(" * 1\n");
+		printf("\n");
 		std::cout << "\nRunning Time: " << duration << " us" << std::endl;
 	}
 	else {
 		auto finish = std::chrono::high_resolution_clock::now();
 		auto duration = std::chrono::duration_cast<std::chrono::microseconds>(finish - begin).count();
-		for (auto it = output.begin(); it != output.end(); ++it) {
-		std::cout << *it << " * ";
-		}
+		for (auto it = output.begin(); it != output.end(); ++it)
+			std::cout << *it << " * ";
 		printf("\b\b\b  \b\b\n");
 		std::cout << "\nRunning Time: " << duration << " us" << std::endl;
 	}
