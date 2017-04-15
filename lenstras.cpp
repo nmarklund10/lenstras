@@ -50,6 +50,7 @@ int lenstras(mpz_t n, mpz_t max) {
 		mpz_tdiv_q_ui(a, n, 2);
 		output.push_back(std::string("2"));
 		lenstras(a, max);
+		mpz_clear(a); mpz_clear(b); mpz_clear(x); mpz_clear(y);
 		return 0;
 	}
 	
@@ -65,6 +66,7 @@ int lenstras(mpz_t n, mpz_t max) {
 				if (mpz_cmp(p.p, p.factor1) != 0) {				
 					lenstras(p.factor1, max);
 					lenstras(p.factor2, max);
+					mpz_clear(a); mpz_clear(b); mpz_clear(x); mpz_clear(y);
 					return 0;
 				}
 			}
@@ -73,6 +75,7 @@ int lenstras(mpz_t n, mpz_t max) {
 	char* f2 = mpz_get_str(NULL, 10, n);
 	output.push_back(std::string(f2));
 	free(f2);
+	mpz_clear(a); mpz_clear(b); mpz_clear(x); mpz_clear(y);
 	return -1;
 }
 
@@ -94,14 +97,17 @@ int main(int argc, char** argv) {
 	int limit = strtol(argv[2], &end_ptr, 10);
 	if (*end_ptr != '\0') {
 		printf("Desired limit is non-numeric!\n");
+		mpz_clear(n); mpz_clear(max);
 		return -1;
 	}
 	if ((limit == LONG_MAX || limit == LONG_MIN) && errno == ERANGE) {
 		printf("Desired limit is too large!\n");
+		mpz_clear(n); mpz_clear(max);
 		return -1;
 	}
 	if (limit < 2) {
 		printf("Desired limit is less than 2!\n");
+		mpz_clear(n); mpz_clear(max);
 		return -1;
 	}
 	gmp_randinit_mt(state);
@@ -112,16 +118,23 @@ int main(int argc, char** argv) {
 	printf("\n");
 	mpz_out_str(stdout, 10, n);
 	printf(" = ");
+	auto begin = std::chrono::high_resolution_clock::now();
 	if (lenstras(n, max) == -1) {
+		auto finish = std::chrono::high_resolution_clock::now();
+		auto duration = std::chrono::duration_cast<std::chrono::microseconds>(finish - begin).count();
 		mpz_out_str(stdout, 10, n);
 		printf(" * 1\n");
+		std::cout << "\nRunning Time: " << duration << " us" << std::endl;
 	}
 	else {
+		auto finish = std::chrono::high_resolution_clock::now();
+		auto duration = std::chrono::duration_cast<std::chrono::microseconds>(finish - begin).count();
 		for (auto it = output.begin(); it != output.end(); ++it) {
 		std::cout << *it << " * ";
 		}
 		printf("\b\b\b  \b\b\n");
+		std::cout << "\nRunning Time: " << duration << " us" << std::endl;
 	}
-	mpz_clear(temp);
+	mpz_clear(n); mpz_clear(max); mpz_clear(temp); gmp_randclear(state);
 	return 0;
 }
