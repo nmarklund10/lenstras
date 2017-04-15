@@ -9,8 +9,9 @@
 
 std::random_device rand_dev;
 gmp_randstate_t state;
-mpz_t temp;
 std::vector<int> primes;
+std::vector<std::string> output;
+mpz_t temp;
 
 void get_primes_less_than(const int& limit, std::vector<int>& table) {
 	//erathosthen_sieve to get all primes less than limit
@@ -36,9 +37,21 @@ void get_new_input(mpz_t a, mpz_t b, mpz_t x, mpz_t y, mpz_t n, mpz_t max) {
 }
 
 int lenstras(mpz_t n, mpz_t max) {
+	if (mpz_cmp_si(n, 2) == 0) {
+		output.push_back(std::string("2"));
+		return 0;
+	}
 	int bound = 5, reps = 0;
 	mpz_t a, b, x, y;
-	mpz_init(a); mpz_init(b); mpz_init(x); mpz_init(y); 
+	mpz_init(a); mpz_init(b); mpz_init(x); mpz_init(y);
+	mpz_set_si(temp, 1);
+	mpz_and(temp, n, temp);
+	if ((mpz_cmp_si(temp, 0) == 0)) {
+		mpz_tdiv_q_ui(a, n, 2);
+		output.push_back(std::string("2"));
+		lenstras(a, max);
+		return 0;
+	}
 	
 	while (++reps <= bound) {
 		get_new_input(a, b, x, y, n, max);
@@ -49,17 +62,17 @@ int lenstras(mpz_t n, mpz_t max) {
 			//Addition failed
 			if (p.multiply(*it) < 0) {
 				//check for non-trivial factor
-				if (mpz_cmp(p.p, p.factor1) != 0) {
-					mpz_out_str(stdout, 10, p.factor1);
-					printf(" * ");
-					mpz_out_str(stdout, 10, p.factor2);
-					printf("\n");
+				if (mpz_cmp(p.p, p.factor1) != 0) {				
+					lenstras(p.factor1, max);
+					lenstras(p.factor2, max);
 					return 0;
 				}
 			}
 		}
-
 	}
+	char* f2 = mpz_get_str(NULL, 10, n);
+	output.push_back(std::string(f2));
+	free(f2);
 	return -1;
 }
 
@@ -91,16 +104,23 @@ int main(int argc, char** argv) {
 		printf("Desired limit is less than 2!\n");
 		return -1;
 	}
-	mpz_init(temp);
 	gmp_randinit_mt(state);
 	gmp_randseed_ui(state, rand_dev());
 	get_primes_less_than(limit, primes);
+	mpz_init(temp);
 	
+	printf("\n");
 	mpz_out_str(stdout, 10, n);
 	printf(" = ");
 	if (lenstras(n, max) == -1) {
 		mpz_out_str(stdout, 10, n);
 		printf(" * 1\n");
+	}
+	else {
+		for (auto it = output.begin(); it != output.end(); ++it) {
+		std::cout << *it << " * ";
+		}
+		printf("\b\b\b  \b\b\n");
 	}
 	mpz_clear(temp);
 	return 0;

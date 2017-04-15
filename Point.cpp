@@ -14,6 +14,9 @@ Point::Point(mpz_t x_new, mpz_t y_new, mpz_t a_new, mpz_t p_new) {
 	mpz_init_set(y, y_new);
 	mpz_init_set(a, a_new);
 	mpz_init_set(p, p_new);
+	mpz_mod(x, x, p);
+	mpz_mod(y, y, p);
+	mpz_mod(a, a, p);
 	mpz_init(factor1);
 	mpz_init(factor2);
 }
