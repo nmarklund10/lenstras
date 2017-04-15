@@ -1,11 +1,5 @@
 #include "Point.h"
 
-void my_mpz_mod(mpz_t out, mpz_t modulus) {
-	while (mpz_cmp_si(out, 0) < 0)
-		mpz_add(out, out, modulus);
-	mpz_mod(out, out, modulus);
-}
-
 Point::Point(mpz_t a_new, mpz_t p_new) {
 	mpz_init_set_si(x, -1);
 	mpz_init_set_si(y, -1);
@@ -20,9 +14,6 @@ Point::Point(mpz_t x_new, mpz_t y_new, mpz_t a_new, mpz_t p_new) {
 	mpz_init_set(y, y_new);
 	mpz_init_set(a, a_new);
 	mpz_init_set(p, p_new);
-	my_mpz_mod(x, p);
-	my_mpz_mod(y, p);
-	my_mpz_mod(a, p);
 	mpz_init(factor1);
 	mpz_init(factor2);
 }
@@ -68,13 +59,21 @@ int Point::add(Point& p1) {
 	if (equals_POINT_O()) {
 		mpz_set(x, p1.x);
 		mpz_set(y, p1.y);
-		my_mpz_mod(x, p);
-		my_mpz_mod(y, p);
 		return 2;
 	}
 	mpz_t m, x3, y3, temp, copy;
 	mpz_init(m); mpz_init(x3); mpz_init(y3); mpz_init(temp); mpz_init(copy);
-	if (equals(p1)) {
+	if ((mpz_cmp(x, p1.x) == 0) && (mpz_cmp(y, p1.y) != 0)) {
+		mpz_set_si(x, -1);
+		mpz_set_si(y, -1);
+		mpz_clear(m);
+		mpz_clear(temp);
+		mpz_clear(x3);
+		mpz_clear(y3);
+		mpz_clear(copy);
+		return 3;
+	}
+	else if (equals(p1)) {
 		mpz_set_ui(m, 3);
 		mpz_mul(m, m, x);
 		mpz_mul(m, m, x);
@@ -98,17 +97,7 @@ int Point::add(Point& p1) {
 			return -1;
 		}
 		mpz_mul(m, m, temp);
-		my_mpz_mod(m, p);
-	}
-	else if (mpz_cmp(x, p1.x) == 0) {
-		mpz_set_si(x, -1);
-		mpz_set_si(y, -1);
-		mpz_clear(m);
-		mpz_clear(temp);
-		mpz_clear(x3);
-		mpz_clear(y3);
-		mpz_clear(copy);
-		return 3;
+		mpz_mod(m, m, p);
 	}
 	else {
 		mpz_set(m, p1.y);
@@ -132,17 +121,17 @@ int Point::add(Point& p1) {
 			return -1;
 		}
 		mpz_mul(m, m, temp);
-		my_mpz_mod(m, p);
+		mpz_mod(m, m, p);
 	}
 	mpz_mul(temp, m, m);
 	mpz_sub(temp, temp, x);
 	mpz_sub(x3, temp, p1.x);
-	my_mpz_mod(x3, p);
+	mpz_mod(x3, x3, p);
 	
 	mpz_sub(temp, x, x3);
 	mpz_mul(temp, temp, m);;
 	mpz_sub(y3, temp, y);
-	my_mpz_mod(y3, p);
+	mpz_mod(y3, y3, p);
 	
 	mpz_set(x, x3);
 	mpz_set(y, y3);
@@ -170,6 +159,7 @@ int Point::multiply(int n) {
 	Point result(*this);
 	Point result_neg(*this);						
 	mpz_mul_si(result_neg.y, result_neg.y, -1); //negate y value
+	mpz_add(result_neg.y, result_neg.y, result_neg.p);
 	Point temp(result_neg);
 	Point temp2(result);
 	
