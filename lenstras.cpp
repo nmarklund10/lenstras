@@ -38,18 +38,10 @@ void get_new_input(mpz_t a, mpz_t b, mpz_t x, mpz_t y, mpz_t n, mpz_t max) {
 }
 
 int lenstras(mpz_t n, mpz_t max) {
-	char* f2 = mpz_get_str(NULL, 10, n);
-	std::string s(f2);
-	free(f2);
-	if (std::find(output.begin(), output.end(), s) != output.end()) {
-		output.push_back(s);
-		return 0;
-	}
 	if (mpz_cmp_si(n, 2) == 0) {
 		output.push_back(std::string("2"));
 		return -1;
 	}
-	int bound = 5, reps = 0;
 	mpz_t a, b, x, y;
 	mpz_init(a); mpz_init(b); mpz_init(x); mpz_init(y);
 	mpz_set_si(temp, 1);
@@ -57,12 +49,11 @@ int lenstras(mpz_t n, mpz_t max) {
 	if ((mpz_cmp_si(temp, 0) == 0)) {
 		mpz_tdiv_q_ui(a, n, 2);
 		output.push_back(std::string("2"));
-		lenstras(a, max);
 		mpz_clear(a); mpz_clear(b); mpz_clear(x); mpz_clear(y);
 		return 0;
 	}
 	
-	while (++reps <= bound) {
+	while (true) {
 		get_new_input(a, b, x, y, n, max);
 		Point p(x, y, a, n);
 		
@@ -71,16 +62,21 @@ int lenstras(mpz_t n, mpz_t max) {
 			//Addition failed
 			if (p.multiply(*it) < 0) {
 				//check for non-trivial factor
-				if (mpz_cmp(p.p, p.factor1) != 0) {				
-					lenstras(p.factor1, max);
-					lenstras(p.factor2, max);
+				if (mpz_cmp(p.p, p.factor1) != 0) {	
+					char* f1 = mpz_get_str(NULL, 10, p.factor1);
+					char* f2 = mpz_get_str(NULL, 10, p.factor2);
+					std::string s1(f1);
+					std::string s2(f2);
+					free(f1);
+					free(f2);
+					output.push_back(s1);
+					output.push_back(s2);
 					mpz_clear(a); mpz_clear(b); mpz_clear(x); mpz_clear(y);
 					return 0;
 				}
 			}
 		}
 	}
-	output.push_back(s);
 	mpz_clear(a); mpz_clear(b); mpz_clear(x); mpz_clear(y);
 	return -1;
 }
